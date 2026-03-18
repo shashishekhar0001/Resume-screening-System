@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Resume Screening</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            width: 420px;
+            box-shadow: 0 0 25px rgba(0, 0, 255, 0.4);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #93c5fd;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .footer {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>🚀 Smart Resume Screening</h2>
+
+    <form id="form">
+        <input type="file" id="file" multiple required>
+
+        <textarea id="job_desc" rows="5" placeholder="Enter Job Description..."></textarea>
+
+        <button type="submit">Analyze Resumes</button>
+    </form>
+
+    <div id="result"></div>
+
+    <div class="footer">
+        AI + NLP Powered 💡
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('form');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('file');
+        const jobDesc = document.getElementById('job_desc').value;
+
+        const formData = new FormData();
+
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append("files", fileInput.files[i]);
+        }
+
+        formData.append("job_desc", jobDesc);
+
+        const response = await fetch("http://127.0.0.1:8000/match-multiple", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        let resultHTML = "<h3>🏆 Ranking</h3>";
+
+        data.ranking.forEach((item, index) => {
+            resultHTML += `
+                <div class="card">
+                    <div style="width: 100%">
+                        <div class="rank">#${index + 1} ${item.name}</div>
+
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${item.score}%"></div>
+                        </div>
+
+                        <div style="margin-top:5px; font-size:12px; color:#9ca3af;">
+                            Matched Skills: ${item.matched.join(", ") || "None"}
+                        </div>
+                    </div>
+
+                    <div class="score">${item.score}%</div>
+                </div>
+            `;
+        });
+
+        document.getElementById("result").innerHTML = resultHTML;
+    });
+</script>
+
+</body>
+</html>
